@@ -17,6 +17,7 @@
 #include "dhcp-server.h"
 #include "preferences.h"
 #include "util.h"
+#include "globals.h"
 
 #define DHCPD "/usr/sbin/dhcpd"
 #define DHCPD_CONFIG "/etc/dhcpd.conf"

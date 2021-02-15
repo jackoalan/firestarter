@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include <stdarg.h>
 #include <sys/wait.h>
 

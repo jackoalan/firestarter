@@ -14,6 +14,7 @@
 #include <ctype.h>
 
 #include "service.h"
+#include "globals.h"
 
 typedef struct
 {
@@ -195,7 +196,7 @@ service_get_name (gint port, gchar *proto)
 		ent = getservbyport (htons (port), lowercase_proto);
 		g_free (lowercase_proto);
 
-		if (ent && ent->s_name != "") {
+		if (ent && strlen(ent->s_name)) {
 			name = ent->s_name;
 			name[0] = toupper(name[0]);
 			/* Register the retrieved service with the table for future reference */

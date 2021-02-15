@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -491,11 +491,11 @@ append_hook_to_script (FILE *f)
 	}
 
 	rewind (f);
-	fprintf (f, FIRESTARTER_HOOK);
+	fputs (FIRESTARTER_HOOK, f);
 
 	link = list;
 	while (link != NULL) {
-		fprintf (f, link->data);
+		fputs (link->data, f);
 		g_free (link->data);
 		link = link->next;
 	}
@@ -544,7 +544,7 @@ remove_hook (gchar *path)
 
 		link = newlist;
 		while (link != NULL) {
-			fprintf (f, link->data);
+			fputs (link->data, f);
 			g_free (link->data);
 			link = link->next;
 		}
@@ -580,7 +580,7 @@ add_hook (gchar *path)
 			return;
 		}
 
-		fprintf (f, FIRESTARTER_HOOK);
+		fputs (FIRESTARTER_HOOK, f);
 		fclose (f);
 	}
 }

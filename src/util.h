@@ -14,7 +14,7 @@
 #define _FIRESTARTER_UTIL
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 #include "firestarter.h"
 

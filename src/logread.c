@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include <netdb.h>
 
 #include "globals.h"
@@ -22,37 +22,16 @@
 
 static gboolean BUSY = FALSE;
 
-/* [ gvfs_seek_callback ]
- * Zero the buffer and read again
- */
-static void
-gvfs_seek_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data)
-{
-	Parse *info = data;
-	if (result != GNOME_VFS_OK) {
-		g_warning ("Seek error");
-	}
-
-	memset (info->buffer, 0, FILE_BUF);
-	gnome_vfs_async_read (handle, info->buffer, FILE_BUF, logread_async_read_callback, info);
-}
-
-static void
-gvfs_seek_end_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data)
-{
-	if (result != GNOME_VFS_OK)
-		g_warning ("Seek end error");
-}
-
 /* [ logread_async_read_callback ]
  * Read file parsing for iptables pattern, add to hitview on match
  */
 void
-logread_async_read_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer buffer,
-                             GnomeVFSFileSize bytes_requested, GnomeVFSFileSize bytes_read, gpointer data)
+logread_async_read_callback (GObject *source_object,
+                             GAsyncResult *res,
+                             gpointer user_data)
 {
 	gchar **lines = NULL;
-	Parse *info = data;
+	Parse *info = user_data;
 	Hit *h;
 	int i = 0;
 	
@@ -61,7 +40,9 @@ logread_async_read_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result,
 	else 
 		info->half_line=1;
 
-	if (result == GNOME_VFS_OK && bytes_read > 0) {
+	gssize bytes_read = g_input_stream_read_finish(G_INPUT_STREAM(source_object), res, NULL);
+
+	if (bytes_read > 0) {
 	/* split line into (gchar **) and check for pattern */
 		lines = g_strsplit_set (info->buffer, "\n",-1);
 		while (*(lines+(i+info->half_line)) && (*lines+i != NULL)) {
@@ -75,28 +56,29 @@ logread_async_read_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result,
 			i++;
 		}
 		/* end of file or error */
-		if (bytes_requested != bytes_read) {
+		if (FILE_BUF != bytes_read) {
 			if (info->continuous) {
 				memset (info->buffer, 0, FILE_BUF); /* fill buffer with zeros, next line might be half line */
 				BUSY = FALSE;
 			} else
-				gnome_vfs_async_close (handle, hitview_abort_reload_callback, info);
+				g_input_stream_close_async(G_INPUT_STREAM(source_object), G_PRIORITY_DEFAULT, NULL, hitview_abort_reload_callback, info);
 		} else if ((info->half_line) == 1 && (i > 1)) { /* if last line was half line seek back */
 			int len=strlen (*(lines+i));
-			gnome_vfs_async_seek (handle,GNOME_VFS_SEEK_CURRENT, -len,
-			                      gvfs_seek_callback, info);
+			g_seekable_seek(G_SEEKABLE(source_object), -len, G_SEEK_CUR, NULL, NULL);
+			memset (info->buffer, 0, FILE_BUF);
+			g_input_stream_read_async(G_INPUT_STREAM(info->handle), info->buffer, FILE_BUF, G_PRIORITY_DEFAULT, NULL, logread_async_read_callback, info);
 
 		} else {
 			memset (info->buffer, 0, FILE_BUF); /* fill buffer with zeros, next line might be half line */
 			info->bytes_read += bytes_read;
-			gnome_vfs_async_read (handle, info->buffer, FILE_BUF, logread_async_read_callback, info);
+			g_input_stream_read_async(G_INPUT_STREAM(info->handle), info->buffer, FILE_BUF, G_PRIORITY_DEFAULT, NULL, logread_async_read_callback, info);
 		}
 	} else {
 		if (info->continuous) {
 			memset (info->buffer, 0, FILE_BUF); /* fill buffer with zeros, next line might be half line */
 			BUSY = FALSE;
 		} else {
-			gnome_vfs_async_close (handle, hitview_abort_reload_callback, info);
+			g_input_stream_close_async(G_INPUT_STREAM(source_object), G_PRIORITY_DEFAULT, NULL, hitview_abort_reload_callback, info);
 		}
 
 
@@ -116,27 +98,31 @@ poll_log_timeout (gpointer data)
 
 	if (BUSY == FALSE) { /* start reading only when previous read has finished */
 		BUSY = TRUE;
-		gnome_vfs_async_read (info->handle, info->buffer, FILE_BUF, logread_async_read_callback, info);
+		g_input_stream_read_async(G_INPUT_STREAM(info->handle), info->buffer, FILE_BUF, G_PRIORITY_DEFAULT, NULL, logread_async_read_callback, info);
 	}	
 	return TRUE; /* TRUE means we want to keep calling the function */
 }
 
 static void
-gvfs_open_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data)
+gvfs_open_callback (GObject *file,
+                    GAsyncResult *res,
+                    gpointer user_data)
 {
 	Parse *info;
-	
-	if (result != GNOME_VFS_OK) {
+
+	GFileInputStream *stream = g_file_read_finish(G_FILE(file), res, NULL);
+
+	if (!stream) {
 		g_warning ("Log file not found or access denied.\n"
 		           "Firewall log monitoring disabled.");
 	} else {
 		info = g_new (Parse, 1);
 		info->buffer = g_new (gchar, FILE_BUF+1);
 		info->pattern = g_pattern_spec_new ("* IN=* OUT=* SRC=* ");
-		info->handle = handle;
+		info->handle = stream;
 		info->continuous = TRUE;
 		/* seek to the end of file and add a timeout */
-		gnome_vfs_async_seek (handle, GNOME_VFS_SEEK_END, 0, gvfs_seek_end_callback, info);
+		g_seekable_seek(G_SEEKABLE(stream), 0, G_SEEK_END, NULL, NULL);
 		g_timeout_add (500, poll_log_timeout, info);
 	}
 }
@@ -189,8 +175,7 @@ parse_log_line (gchar *line)
  */
 void
 open_logfile (char *logpath) {
-	GnomeVFSAsyncHandle *handle;
-
-	gnome_vfs_async_open(&handle, logpath, GNOME_VFS_OPEN_READ, GNOME_VFS_PRIORITY_DEFAULT,
-	                     gvfs_open_callback, NULL);
+	GFile *file = g_file_new_for_path(logpath);
+	g_file_read_async(file, G_PRIORITY_DEFAULT, NULL, gvfs_open_callback, NULL);
+	g_object_unref(file);
 }

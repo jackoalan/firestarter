@@ -30,18 +30,16 @@ if test x"$GCONFTOOL" = xno; then
   AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf2])
 fi
 
-LIBGNOME_REQUIRED=2.0.0
-LIBGNOMEUI_REQUIRED=2.0.0
 GTK_REQUIRED=2.4.0
-GNOME_VFS_REQUIRED=2.6.0
 LIBGLADE_REQUIRED=2.3.6
+GCONF_REQUIRED=3.2.0
+X11_REQUIRED=1.5.0
 
 PKG_CHECK_MODULES(FIRESTARTER,
-                  libgnome-2.0 >= $LIBGNOME_REQUIRED
-                  libgnomeui-2.0 >= $LIBGNOMEUI_REQUIRED
-                  gtk+-2.0 >= $GTK_REQUIRED
-                  gnome-vfs-2.0 >= $GNOME_VFS_REQUIRED
-		  libglade-2.0 >= $LIBGLADE_REQUIRED)
+		  gtk+-2.0 >= $GTK_REQUIRED
+		  libglade-2.0 >= $LIBGLADE_REQUIRED
+		  gconf-2.0 >= $GCONF_REQUIRED
+		  x11 >= $X11_REQUIRED)
 
 AC_SUBST(FIRESTARTER_CFLAGS)
 AC_SUBST(FIRESTARTER_LIBS)

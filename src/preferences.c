@@ -161,7 +161,7 @@ preferences_check_schema (void)
 		GtkWidget *dialog;
 
 		dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
-        	                                 GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, msg);
+        	                                 GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, "%s", msg);
 		gtk_dialog_run (GTK_DIALOG (dialog));
 		gtk_widget_destroy (dialog);
 		exit(1);
@@ -215,7 +215,7 @@ preferences_set_string (const gchar *gconf_key, const gchar *data)
 static void
 preferences_show_help (void)
 {
-	gnome_url_show ("http://www.fs-security.com/docs/preferences.php", NULL);
+	gtk_show_uri (NULL, "http://www.fs-security.com/docs/preferences.php", 0, NULL);
 }
 
 static GtkTreeModel*

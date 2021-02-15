@@ -13,7 +13,7 @@
 #define _FIRESTARTER_SAVELOG
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 void savelog_show_dialog (void);
 

@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <netdb.h>
@@ -35,6 +35,10 @@
 
 FirestarterApp Firestarter;
 
+gboolean NETFILTER;
+gboolean CONSOLE;
+
+#if 0
 static gint save_session (GnomeClient       *client,
                           gint               phase,
                           GnomeSaveStyle     save_style,
@@ -45,6 +49,7 @@ static gint save_session (GnomeClient       *client,
 
 static void session_die (GnomeClient        *client,
                          gpointer            client_data);
+#endif
 
 gboolean firestarter_is_locked (void);
 
@@ -231,6 +236,7 @@ exit_firestarter (void)
 	gtk_main_quit ();
 }
 
+#if 0
 /* [ save_session ]
  * Saves the current session for later revival
  */
@@ -261,6 +267,7 @@ session_die (GnomeClient *client, gpointer client_data)
 {
 	exit_firestarter ();
 }
+#endif
 
 static const gchar *
 get_lock_file_path (void)
@@ -332,7 +339,7 @@ is_root (void)
 int
 main (int argc, char* argv[])
 {
-	GnomeClient *client;
+	//GnomeClient *client;
 	gint i;
 	gboolean must_run_wizard;
 	gboolean show_gui = TRUE;
@@ -348,25 +355,25 @@ main (int argc, char* argv[])
 
 		if (!strcmp (arg, "-s") || !strcmp(arg, "--start")) {
 			CONSOLE = TRUE;
-			gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
+			//gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
 			if (is_root ())
 				start_firewall ();
 			return 0;
 		} else if (!strcmp (arg, "-p") || !strcmp(arg, "--stop")) {
 			CONSOLE = TRUE;
-			gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
+			//gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
 			if (is_root ())
 				stop_firewall ();
 			return 0;
 		} else if (!strcmp(arg, "--lock")) {
 			CONSOLE = TRUE;
-			gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
+			//gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
 			if (is_root ())
 				lock_firewall ();
 			return 0;
 		} else if (!strcmp(arg, "--generate-scripts")) {
 			CONSOLE = TRUE;
-			gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
+			//gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
 			if (is_root ())
 				scriptwriter_output_scripts ();
 			return 0;
@@ -377,20 +384,23 @@ main (int argc, char* argv[])
 			return 0;
 		} else if (!strcmp (arg, "-h") || !strcmp (arg, "--help") || !strcmp(arg, "-help")) {
 			CONSOLE = TRUE;
-			gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
+			//gnome_program_init ("firestarter", VERSION, LIBGNOME_MODULE, 1, argv, NULL);
 			show_help ();
 			return 0;	
 		}
 	}
 
-	gnome_program_init ("firestarter", VERSION, LIBGNOMEUI_MODULE, argc, argv, NULL);
+	gtk_init(&argc, &argv);
+	//gnome_program_init ("firestarter", VERSION, LIBGNOMEUI_MODULE, argc, argv, NULL);
 
+#if 0
 	/* Set up the session managment */
 	client = gnome_master_client ();
 	g_signal_connect (G_OBJECT (client), "save_yourself",
 			  G_CALLBACK (save_session), argv[0]);
 	g_signal_connect (G_OBJECT (client), "die",
 			  G_CALLBACK (session_die), NULL);
+#endif
 
 	/* Check that the user is root */
 	if (!is_root ())
@@ -420,9 +430,9 @@ main (int argc, char* argv[])
 	else {
 		/* Test that our scripts are up to date */
 		if (!scriptwriter_versions_match ()) {
-			printf (_("Updating firewall to new version...\n"));
+			puts (_("Updating firewall to new version...\n"));
 			scriptwriter_output_scripts ();
-			printf (_("Firewall update complete\n"));
+			puts (_("Firewall update complete\n"));
 		}
 			
 		if (preferences_get_bool (PREFS_START_ON_GUI))

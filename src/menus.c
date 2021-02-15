@@ -34,6 +34,8 @@ static GtkAccelGroup *main_accel_group;
 
 static GtkUIManager *ui_manager;
 
+GtkWidget *appbar;
+
 static void open_homepage (void);
 static void open_manual (void);
 static void copy_selected (void);
@@ -69,7 +71,7 @@ static GtkActionEntry entries[] = {
 
 	{ "OpenManual", GTK_STOCK_HELP, N_("Online Users' _Manual"), NULL, N_("Open the online users' manual in a browser"), open_manual },
 	{ "OpenHomepage", GTK_STOCK_HOME, N_("Firestarter _Homepage"), NULL, N_("Open the Firestarter homepage in a browser"), open_homepage },
-	{ "ShowAbout", GNOME_STOCK_ABOUT, N_("_About"), NULL, N_("About Firestarter"), G_CALLBACK (show_about) },
+	{ "ShowAbout", GTK_STOCK_ABOUT, N_("_About"), NULL, N_("About Firestarter"), G_CALLBACK (show_about) },
 
 	{ "AllowInboundFrom", NULL, N_("Allow Connections From Source"), NULL, N_("Allow all connections from this source"), hitview_allow_host },
 	{ "AllowInboundService", NULL, N_("Allow Inbound Service for Everyone"), NULL, N_("Allow inbound service for everyone"), hitview_allow_service },
@@ -383,7 +385,7 @@ menus_update_events_reloading (gboolean in_progress, gboolean visible)
  * Install the menus and the toolbar in *window
  */
 void
-menus_initialize (GtkWidget *window)
+menus_initialize (GtkWidget *window, GtkWidget *vbox)
 {
 	GtkIconFactory *icon_factory;
 	GtkWidget *menubar;
@@ -449,10 +451,10 @@ menus_initialize (GtkWidget *window)
 	}
 
 	menubar = gtk_ui_manager_get_widget (ui_manager, "/MainMenu");
-	gnome_app_set_menus (GNOME_APP (window), GTK_MENU_BAR (menubar));
+	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
 
 	toolbar = gtk_ui_manager_get_widget (ui_manager, "/Toolbar");
-	gnome_app_set_toolbar (GNOME_APP (Firestarter.window), GTK_TOOLBAR (toolbar));
+	gtk_box_pack_end(GTK_BOX(vbox), toolbar, FALSE, FALSE, 5);
 	/* gtk_toolbar_set_style (GTK_TOOLBAR (toolbar), GTK_TOOLBAR_ICONS); */
 
 	menus_set_toolbar (STATUS_VIEW);
@@ -541,13 +543,13 @@ menus_policy_apply_enabled (gboolean enabled)
 static void
 open_homepage (void)
 {
-	gnome_url_show ("http://www.fs-security.com", NULL);
+	gtk_show_uri(NULL, "http://www.fs-security.com", 0, NULL);
 }
 
 static void
 open_manual (void)
 {
-	gnome_url_show ("http://www.fs-security.com/docs/", NULL);
+	gtk_show_uri(NULL, "http://www.fs-security.com/docs/", 0, NULL);
 }
 
 /* [ copy_selected ]

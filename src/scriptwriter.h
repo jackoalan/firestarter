@@ -13,7 +13,7 @@
 #define _FIRESTARTER_SCRIPTWRITER
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "wizard.h"
 #include "policyview.h"
 

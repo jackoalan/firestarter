@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

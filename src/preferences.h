@@ -77,7 +77,7 @@
 #define PREFS_HITVIEW_SERVICE_COL "/apps/firestarter/client/ui/hitview_service_col"
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 void preferences_check_schema (void);
 

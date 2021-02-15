@@ -10,7 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 #include "globals.h"
 #include "firestarter.h"
@@ -151,13 +151,13 @@ show_about (GtkWidget *widget, gpointer data)
 
 		pixbuf = gdk_pixbuf_new_from_inline (-1, pengo, FALSE, NULL);
 
-		dialog = gnome_about_new (
-			"Firestarter", VERSION,
-			"(C) 2000-2005 Tomas Junnonen",
-			_("An all-in-one Linux firewall utility for GNOME.\n"),
-			authors,
-			NULL,
-			NULL, pixbuf);
+		dialog = gtk_about_dialog_new();
+		gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog), "Firestarter");
+		gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), VERSION);
+		gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(dialog), "(C) 2000-2005 Tomas Junnonen");
+		gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog), _("An all-in-one Linux firewall utility for GNOME.\n"));
+		gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(dialog), authors);
+		gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(dialog), pixbuf);
 
 		g_signal_connect (G_OBJECT (dialog), "destroy",
 			G_CALLBACK (gtk_widget_destroyed), &dialog);
@@ -244,10 +244,12 @@ gui_construct (void)
 
 	gchar hostname[40];
 
+	Firestarter.window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
 	if (!gethostname (hostname, 39))
-		Firestarter.window = gnome_app_new (PACKAGE, g_strconcat ("Firestarter ", hostname, NULL));
+		gtk_window_set_title(GTK_WINDOW(Firestarter.window), g_strconcat ("Firestarter ", hostname, NULL));
 	else
-		Firestarter.window = gnome_app_new (PACKAGE, "Firestarter");
+		gtk_window_set_title(GTK_WINDOW(Firestarter.window), "Firestarter");
 
 	Firestarter.ttips = gtk_tooltips_new ();
 
@@ -255,14 +257,16 @@ gui_construct (void)
 	g_signal_connect (G_OBJECT (Firestarter.window), "delete_event",
 			  G_CALLBACK (close_main_window), NULL);
 
-	gnome_window_icon_set_default_from_file (
-		"/usr/share/pixmaps/firestarter.png");
+	gtk_window_set_default_icon_name("firestarter");
 
-	menus_initialize (Firestarter.window);
+	GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(Firestarter.window), vbox);
+
+	menus_initialize (Firestarter.window, vbox);
 
 /* The main application is spread out over a set of notebook pages */
 	notebook = gtk_notebook_new ();
-	gnome_app_set_contents (GNOME_APP (Firestarter.window), notebook);
+	gtk_box_pack_end(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 
 /* Set up the statusview page */
 	statusview_page = create_statusview_page ();

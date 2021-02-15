@@ -10,8 +10,7 @@
  *--------------------------------------------------------------------*/
 
 #include <config.h>
-#include <gnome.h>
-#include <libgnomevfs/gnome-vfs.h>
+#include <gtk/gtk.h>
 
 #include "firestarter.h"
 #include "globals.h"
@@ -29,7 +28,7 @@
 static GtkListStore *hitstore;
 static GtkWidget *hitview;
 static Hit *last_hit = NULL;
-static GnomeVFSAsyncHandle *hitview_ghandle = (GnomeVFSAsyncHandle*)NULL;
+static GCancellable *hitview_gcancel = (GCancellable*)NULL;
 
 const Hit *
 get_last_hit (void)
@@ -40,20 +39,25 @@ get_last_hit (void)
 gboolean
 hitview_reload_in_progress (void)
 {
-	return (hitview_ghandle != NULL);
+	return (hitview_gcancel != NULL);
 }
 
 void
-hitview_abort_reload_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data)
+hitview_abort_reload_callback (GObject *source_object,
+                               GAsyncResult *res,
+                               gpointer user_data)
 {
-	Parse *info = data;
-	if (result != GNOME_VFS_OK) {
+	Parse *info = user_data;
+
+	if (!g_input_stream_close_finish(G_INPUT_STREAM(source_object), res, NULL)) {
 		g_warning ("Close error");
 	}
 	g_free (info->buffer);
 	g_pattern_spec_free (info->pattern);
+	g_object_unref(info->handle);
 	g_free (info);
-	hitview_ghandle = (GnomeVFSAsyncHandle*)NULL;
+	g_object_unref(hitview_gcancel);
+	hitview_gcancel = NULL;
 
 	menus_update_events_reloading (FALSE, gui_get_active_view () == EVENTS_VIEW);
 	printf ("Finished reading events list\n");
@@ -310,40 +314,48 @@ hitview_append_hit (Hit *h)
  * Open and read the file asynchronously
  */
 static void
-gvfs_open_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data)
+gvfs_open_callback (GObject *source_object,
+                    GAsyncResult *res,
+                    gpointer user_data)
 {
-	Parse *info = g_new (Parse, 1);
-	GnomeVFSFileInfo *file_info;
+	GFileInputStream *stream = g_file_read_finish(G_FILE(source_object), res, NULL);
 
-	if (result != GNOME_VFS_OK) {
+	Parse *info = g_new (Parse, 1);
+
+	if (!stream) {
 		g_warning ("Failed to open file for async reading");
 		g_free (info);
 		return;
 	}
-	file_info = gnome_vfs_file_info_new ();
 
-	if (gnome_vfs_get_file_info((gchar *)data, file_info, GNOME_VFS_FILE_INFO_DEFAULT) != GNOME_VFS_OK) {
+	GFile *file = g_file_new_for_path((gchar *)user_data);
+	GFileInfo *file_info = g_file_query_info(file, G_FILE_ATTRIBUTE_STANDARD_SIZE, G_FILE_QUERY_INFO_NONE, NULL, NULL);
+
+	if (!file_info) {
 		g_warning ("File info error");
 		g_free (info);
 		return;
 	}
 
-	info->size = file_info->size;
+	info->size = g_file_info_get_size(file_info);
 	info->bytes_read = 0;
 	info->buffer = g_new (gchar, FILE_BUF+1);
 	info->pattern = g_pattern_spec_new ("* IN=* OUT=* SRC=* ");
 	info->continuous = FALSE;
-	gnome_vfs_file_info_unref (file_info);
-	gnome_vfs_async_read (handle, info->buffer, FILE_BUF, logread_async_read_callback, info);
+	info->handle = stream;
+	g_object_unref(file_info);
+
+	g_input_stream_read_async(G_INPUT_STREAM(stream), info->buffer, FILE_BUF, G_PRIORITY_DEFAULT, NULL, logread_async_read_callback, info);
 }
 
 void
 hitview_reload_cancel (void)
 {
 	printf ("Canceled reload of events list\n");
-	gnome_vfs_async_cancel (hitview_ghandle);
+	g_cancellable_cancel(hitview_gcancel);
+	g_object_unref(hitview_gcancel);
+	hitview_gcancel = NULL;
 	menus_update_events_reloading (FALSE, gui_get_active_view () == EVENTS_VIEW);
-	hitview_ghandle = (GnomeVFSAsyncHandle*)NULL;
 }
 
 /* [ hitview_reload ]
@@ -355,8 +367,8 @@ hitview_reload (void)
 	const gchar *path;
 
 	 /* If a new reload request comes while the previous operation is still pending, cancel it */
-	if (hitview_reload_in_progress ()) { 	
-		gnome_vfs_async_cancel (hitview_ghandle);
+	if (hitview_reload_in_progress ()) {
+		g_cancellable_cancel(hitview_gcancel);
 	}
 
 	path = get_system_log_path ();
@@ -369,8 +381,11 @@ hitview_reload (void)
 	}
 
 	hitview_clear ();
-	gnome_vfs_async_open (&hitview_ghandle, path, GNOME_VFS_OPEN_READ, GNOME_VFS_PRIORITY_DEFAULT, 
-                              gvfs_open_callback, (gpointer)path);
+	GFile *file = g_file_new_for_path(path);
+	g_object_unref(hitview_gcancel);
+	hitview_gcancel = g_cancellable_new();
+	g_file_read_async(file, G_PRIORITY_DEFAULT, hitview_gcancel, gvfs_open_callback, (gpointer)path);
+	g_object_unref(file);
 
 	menus_update_events_reloading (TRUE, gui_get_active_view () == EVENTS_VIEW);
 }

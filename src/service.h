@@ -13,7 +13,7 @@
 #define _FIRESTARTER_SERVICE
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 GtkListStore* services_get_model (void);
 gchar *service_get_name (gint port, gchar *proto);

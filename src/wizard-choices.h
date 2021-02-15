@@ -13,7 +13,7 @@
 #define _FIRESTARTER_WIZARD_CHOICES
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "wizard.h"
 
 void load_choices (Wizard *data);

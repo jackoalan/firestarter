@@ -13,13 +13,13 @@
 #define _FIRESTARTER_MENUS
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "gui.h"
 #include "statusview.h"
 
-GtkWidget *appbar;
+extern GtkWidget *appbar;
 
-void menus_initialize (GtkWidget *app);
+void menus_initialize (GtkWidget *window, GtkWidget *vbox);
 void menus_set_toolbar (FirestarterView new_view);
 
 GtkWidget *menus_get_events_inbound_context_menu (void);

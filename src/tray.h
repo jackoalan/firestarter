@@ -13,7 +13,7 @@
 #define _FIRESTARTER_TRAY
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "statusview.h"
 
 void tray_init (void);

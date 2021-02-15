@@ -13,16 +13,16 @@
 #define _FIRESTARTER_LOGREAD
 
 #include <config.h>
-#include <gnome.h>
-#include <libgnomevfs/gnome-vfs.h>
+#include <gtk/gtk.h>
 #include "firestarter.h"
 
 #define FILE_BUF 4096
 
 void open_logfile (char *logpath);
 
-void logread_async_read_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer buffer,
-                                  GnomeVFSFileSize bytes_requested, GnomeVFSFileSize bytes_read, gpointer data);
+void logread_async_read_callback (GObject *source_object,
+                                  GAsyncResult *res,
+                                  gpointer user_data);
 
 Hit *parse_log_line (gchar *line);
 
@@ -32,9 +32,9 @@ struct _Parse
 	gchar *buffer;
 	GPatternSpec *pattern;
 	int half_line;
-	GnomeVFSFileSize size;
-	GnomeVFSFileSize bytes_read;
-	GnomeVFSAsyncHandle *handle;
+	gsize size;
+	gsize bytes_read;
+	GFileInputStream *handle;
 	gboolean continuous;
 };
 

@@ -12,8 +12,16 @@
 #define _FIRESTARTER_GLOBALS
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
+#include <libintl.h>
+#define _(String) gettext (String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop (String)
+
+#define GNOME_PAD 8
+#define GNOME_PAD_SMALL 4
+#define GNOME_PAD_BIG 12
 
 typedef struct
 {
@@ -24,7 +32,7 @@ typedef struct
 
 extern FirestarterApp Firestarter;
 
-gboolean NETFILTER;
-gboolean CONSOLE;
+extern gboolean NETFILTER;
+extern gboolean CONSOLE;
 
 #endif

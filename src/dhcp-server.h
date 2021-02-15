@@ -13,7 +13,7 @@
 #define _FIRESTARTER_DHCP_SERVER
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "wizard.h"
 
 gboolean dhcp_server_exists (void);

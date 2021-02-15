@@ -13,8 +13,7 @@
 #define _FIRESTARTER_HITVIEW
 
 #include <config.h>
-#include <gnome.h>
-#include <libgnomevfs/gnome-vfs.h>
+#include <gtk/gtk.h>
 
 #include "firestarter.h"
 
@@ -22,7 +21,9 @@ void hitview_clear (void);
 void hitview_reload (void);
 void hitview_reload_cancel (void);
 gboolean hitview_reload_in_progress (void);
-void hitview_abort_reload_callback (GnomeVFSAsyncHandle *handle, GnomeVFSResult result, gpointer data);
+void hitview_abort_reload_callback (GObject *source_object,
+                                    GAsyncResult *res,
+                                    gpointer user_data);
 gboolean hitview_append_hit (Hit *h);
 void hitview_toggle_column_visibility (GtkWidget *widget, gint colnum);
 

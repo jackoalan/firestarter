@@ -181,6 +181,12 @@ manual_reference_leave (GtkWidget *widget)
 			      text, "</span>", NULL));
 }
 
+static void
+show_url (const char *url)
+{
+	gtk_show_uri(NULL, url, 0, NULL);
+}
+
 static GtkWidget*
 manual_reference_new (gchar *description, gchar *url)
 {
@@ -195,7 +201,7 @@ manual_reference_new (gchar *description, gchar *url)
 
 	gtk_widget_set_events (event_box, GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
 	g_signal_connect_swapped (G_OBJECT (event_box), "button_press_event",
-		G_CALLBACK (gnome_url_show), "http://www.fs-security.com/docs/dhcp.php");
+		G_CALLBACK (show_url), "http://www.fs-security.com/docs/dhcp.php");
 
 	g_signal_connect_swapped (G_OBJECT (event_box), "enter_notify_event",
 		G_CALLBACK (manual_reference_enter), label);

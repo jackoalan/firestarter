@@ -13,7 +13,7 @@
 #define _FIRESTARTER_MAIN
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 typedef struct _Hit  Hit;
 

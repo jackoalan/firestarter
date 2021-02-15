@@ -13,7 +13,7 @@
 #define _FIRESTARTER_NETFILTER_SCRIPT
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 void write_netfilter_script (void);
 

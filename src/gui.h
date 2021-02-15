@@ -13,7 +13,7 @@
 #define _FIRESTARTER_GUI
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 #include "firestarter.h"
 
 void gui_construct (void);

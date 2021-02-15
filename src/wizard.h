@@ -13,7 +13,7 @@
 #define _FIRESTARTER_WIZARD
 
 #include <config.h>
-#include <gnome.h>
+#include <gtk/gtk.h>
 
 typedef struct _Wizard Wizard;
 

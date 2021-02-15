@@ -22,6 +22,7 @@
 #include "preferences.h"
 #include "policyview.h"
 #include "scriptwriter.h"
+#include "globals.h"
 
 static void
 write_outbound_script ()
