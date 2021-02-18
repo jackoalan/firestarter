@@ -268,6 +268,8 @@ gui_construct (void)
 	notebook = gtk_notebook_new ();
 	gtk_box_pack_end(GTK_BOX(vbox), notebook, TRUE, TRUE, 0);
 
+	gtk_widget_show_all(vbox);
+
 /* Set up the statusview page */
 	statusview_page = create_statusview_page ();
 	tablabel = gtk_label_new (_("Status"));
