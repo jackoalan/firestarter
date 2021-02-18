@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "firestarter.h"
 #include "globals.h"
