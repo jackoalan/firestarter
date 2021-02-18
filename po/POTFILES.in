@@ -3,6 +3,7 @@
 firestarter.desktop.in
 firestarter.schemas.in
 src/dhcp-server.c
+src/eggtrayicon.c
 src/firestarter.c
 src/gui.c
 src/hitview.c
