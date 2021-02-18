@@ -88,16 +88,16 @@ scriptwriter_output_firestarter_script ()
 	fprintf (f, "\n# --(Extract Network Information)--\n\n");
 
 	fprintf (f, "# External network interface data\n"
-		    "IP=`/sbin/ifconfig $IF | grep inet | cut -d : -f 2 | cut -d \\  -f 1`\n"
-		    "MASK=`/sbin/ifconfig $IF | grep Mas | cut -d : -f 4`\n"
-		    "BCAST=`/sbin/ifconfig $IF |grep Bcast: | cut -d : -f 3 | cut -d \\  -f 1`\n"
+		    "IP=`/sbin/ifconfig $IF | awk '$1 == "inet" {print $2}'`\n"
+		    "MASK=`/sbin/ifconfig $IF | awk '$3 == "netmask" {print $4}'`\n"
+		    "BCAST=`/sbin/ifconfig $IF | awk '$5 == "broadcast" {print $6}'`\n"
 		    "NET=$IP/$MASK\n\n");
 
 	fprintf (f, "if [ \"$NAT\" = \"on\" ]; then\n"
 		    "	# Internal network interface data\n"
-		    "	INIP=`/sbin/ifconfig $INIF | grep inet | cut -d : -f 2 | cut -d \\  -f 1`\n"
-		    "	INMASK=`/sbin/ifconfig $INIF | grep Mas | cut -d : -f 4`\n"
-		    "	INBCAST=`/sbin/ifconfig $INIF |grep Bcast: | cut -d : -f 3 | cut -d \\  -f 1`\n"
+		    "	INIP=`/sbin/ifconfig $INIF | awk '$1 == "inet" {print $2}'`\n"
+		    "	INMASK=`/sbin/ifconfig $INIF | awk '$3 == "netmask" {print $4}'`\n"
+		    "	INBCAST=`/sbin/ifconfig $INIF | awk '$5 == "broadcast" {print $6}'`\n"
 		    "	INNET=$INIP/$INMASK\n"
 		    "fi\n\n");
 
